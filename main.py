@@ -25,14 +25,23 @@ class Job:
         if family == 4:
             self.__recption = Reception.Reception(express, socket.AF_INET, port)
             for i in range(0, num):
-                groups.append("239.0.0.{:d}".format(i + 1))
+                groups.append("{:s}{:d}".format(Common.MULTICAST_GROUP_PREFIX_4, i + 1))
         elif family == 6:
             self.__recption = Reception.Reception(express, socket.AF_INET6, port)
             for i in range(0, num):
-                groups.append("ff0e::{:x}".format(i + 1))
+                groups.append("{:s}{:x}".format(Common.MULTICAST_GROUP_PREFIX_6, i + 1))
 
-        for g in groups:
-            self.__recption.add_consignee(MulticastCreator.MulticastCreator.create(g, 8000, interface))
+        print("\nMulticast group list:")
+        glen = len(groups)
+        for i in range(0, glen):
+            if i < 3 or i == glen - 1:
+                if family == 4:
+                    print("{:3d}. {:s}:{:d}".format(i + 1, groups[i], Common.MULTICAST_GROUP_PORT))
+                elif family == 6:
+                    print("{:3d}. [{:s}]:{:d}".format(i + 1, groups[i], Common.MULTICAST_GROUP_PORT))
+            elif i == 3:
+                print("     ...")
+            self.__recption.add_consignee(MulticastCreator.MulticastCreator.create(groups[i], Common.MULTICAST_GROUP_PORT, interface))
     
     def __del__(self):
         logging.info("~Job")
@@ -47,7 +56,7 @@ class Job:
 def main(argv = None):
     job = None
 
-    local_interface = 'eth0'
+    local_interface = None
     local_port = 10000
     local_family = 4
     multi_num = 5
@@ -84,7 +93,7 @@ def main(argv = None):
 
     c = ''
     while c != 'q':
-        c = input("Enter 'q' to quit: ")
+        c = input("\nEnter 'q' to quit: ")
     
     job.stop()
 
